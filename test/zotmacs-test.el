@@ -9,10 +9,16 @@
 (require 'dash)
 (require 'zotmacs)
 
-(ert-deftest test-load ()
-  "Test successful evaluation of zotmacs."
-  (should (> (length (zotmacs-get-better-bibtex-ids)) 0))
-  (should (> (length (zotmacs-get-paths)) 0)))
+;; use configuration that points to zotsite test database
+(setenv "ZOTSITERC" "test/zotmacs-zotsite-test.conf")
+
+(ert-deftest test-better-bibtex-fetch ()
+  "Test BetterBibtex ID fetch."
+  (should (= (length (zotmacs-get-better-bibtex-ids)) 4)))
+
+(ert-deftest test-path-fetch ()
+  "Test content paths fetch."
+  (should (= (length (zotmacs-get-paths)) 4)))
 
 (provide 'zotmacs-test)
 

@@ -254,7 +254,8 @@ The initialization process includes configuring Org Mode to publish and
  (org-zotxt--define-links)
 
  ;; override the `org-zotxt' Org Mode follow function for opening Zotero links
- (eval '(defalias 'org-zotxt--link-follow 'zotmacs-browse-item)))
+ (eval (list 'defalias (quote 'org-zotxt--link-follow)
+	     (quote 'zotmacs-browse-item))))
 
 (provide 'zotmacs)
 

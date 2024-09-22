@@ -24,7 +24,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v3
         with:
-          version: '3.11'
+          python-version: '3.11'
           architecture: 'x64'
 
       - name: Set up Emacs

@@ -4,7 +4,22 @@
 [![MELPA stable badge][melpa-stable-badge]][melpa-stable-link]
 [![Build Status][build-badge]][build-link]
 
-WRITE ME
+Link / browse to [Zotsite] and automate publishing Org Mode files.
+
+
+## Usage
+
+Add the following to your `~/.emacs` initialization file:
+```lisp
+;; Zotero and `zotsite' cross functionality
+(require 'zotmacs)
+
+;; deployed `zotsite' website
+(setq zotmacs-zotsite-url "https://example.com/path/to/exported/zotite")
+
+;; initialize the package
+(zotmacs-init)
+```
 
 
 ## Changelog
@@ -26,3 +41,5 @@ GNU Lesser General Public License, Version 2.0
 [melpa-stable-badge]: https://stable.melpa.org/packages/zotsite-badge.svg
 [build-badge]: https://github.com/plandes/zotsite/workflows/CI/badge.svg
 [build-link]: https://github.com/plandes/zotsite/actions
+
+[Zotsite]: https://github.com/plandes/zotsite

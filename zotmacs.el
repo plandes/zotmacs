@@ -29,6 +29,10 @@
 ;;; Commentary:
 
 ;; Link to Zotsite and automate publishing Org Mode files.
+;;
+;; Use `org-zotxt-insert-reference-link' to insert links in Org Mode files and
+;; `zotmacs-publish' to export/publish the Org Mode as a website.  Following
+;; links in orgmode itself to open the attachment (usually paper) in a browser.
 
 ;;; Code:
 

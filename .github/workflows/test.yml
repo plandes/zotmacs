@@ -15,7 +15,6 @@ jobs:
     strategy:
       matrix:
         emacs-version: ['29.4']
-        python-version: ['3.11']
     steps:
       - name: Checkout reposistory
         uses: actions/checkout@v3
@@ -25,7 +24,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v3
         with:
-          version: ${{ matrix.python-version }}
+          version: '3.11'
           architecture: 'x64'
 
       - name: Set up Emacs

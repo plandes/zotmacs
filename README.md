@@ -35,6 +35,11 @@ website was [exported] and [deployed] (see [usage](#usage)).
 1. Use `zotmacs-publish` to export/publish the Org Mode as a website.  The
    published website's links will redirect to [Zotsite].
 
+[Zotero] data is cached as Emacs data structures.  Changes to [Zotero] data,
+such as adding new papers, requires `zotmacs-clear` to be run to clear this
+cached data to access previously unknown item attachments (i.e. papers).
+
+
 
 ## Changelog
 

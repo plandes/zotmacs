@@ -33,6 +33,10 @@
 ;; Use `org-zotxt-insert-reference-link' to insert links in Org Mode files and
 ;; `zotmacs-publish' to export/publish the Org Mode as a website.  Following
 ;; links in orgmode itself to open the attachment (usually paper) in a browser.
+;;
+;; Zotero data is cached as Emacs data structures.  Changes to Zotero data,
+;; such as adding new papers, requires `zotmacs-clear' to be run to clear this
+;; cached data to access previously unknown item attachments (i.e. papers).
 
 ;;; Code:
 
@@ -125,6 +129,7 @@ If cached, return that, otherwise use ARGS with
 
 (defun zotmacs-clear ()
   "Clear all library cached data."
+  (interactive)
   (zotmacs-clear-better-bibtex-ids)
   (zotmacs-clear-paths))
 

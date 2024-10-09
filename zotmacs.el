@@ -51,7 +51,6 @@
   :group 'zotmacs
   :prefix "zotmacs-")
 
-;file:///Users/landes/opt/client/uicomp/doc/content/dka/zotsite?id=patraExtractingSocialDeterminants2021&isView=1
 (defcustom zotmacs-zotsite-url "file:zotsite/index.html"
   "The deployed `zotsite' website is deployed."
   :group 'zotmacs

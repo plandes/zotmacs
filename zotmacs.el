@@ -51,7 +51,8 @@
   :group 'zotmacs
   :prefix "zotmacs-")
 
-(defcustom zotmacs-zotsite-url "http://example.com"
+;file:///Users/landes/opt/client/uicomp/doc/content/dka/zotsite?id=patraExtractingSocialDeterminants2021&isView=1
+(defcustom zotmacs-zotsite-url "file:zotsite/index.html"
   "The deployed `zotsite' website is deployed."
   :group 'zotmacs
   :type 'string)
@@ -140,7 +141,7 @@ LIB-ITEM-KEY is a unique entry ID prefixed with the library ID such as
   (->> (zotmacs-get-better-bibtex-ids)
        (assoc lib-item-key)
        cdr
-       (format "%s/site/zotero/?id=%s&isView=1" zotmacs-zotsite-url)))
+       (format "%s?id=%s&isView=1" zotmacs-zotsite-url)))
 
 (defun zotmacs-item-path (lib-item-key)
   "Return a item's document, such as a PDF, identified by LIB-ITEM-KEY."
@@ -156,39 +157,81 @@ LIB-ITEM-KEY is a unique entry ID prefixed with the library ID such as
   "Browse a Zotero website paper identified by the item PATH."
   (browse-url (zotmacs-zotsite-url (zotmacs-zotxt-path-to-item path))))
 
-(defun zotmacs-zotero-filter-link-function (text backend info)
-  "Replace links TEXT with Zotero Zotsync links.
-BACKEND the backend, which is usually `twbs'.
-INFO is optional information about the export process."
-  (ignore backend)
-  (ignore info)
-  (set-text-properties 0 (length text) nil text)
-  (when zotmacs-better-bibtex-debug
-    (message "Remapping %s" text))
+(defun zotmacs-zotero-filter-html-link (text bb-ids)
+  "Replace a Zotero HTML link in TEXT using an citation link from BB-IDS."
   (let ((prev-link text)
-	(regex "^<a href=\"//select/items/\\(.*?\\)\">\\(.*\\)</a>\\([ ]*\\)$")
-	(bb-ids (zotmacs-get-better-bibtex-ids)))
-    (unless bb-ids
-      (message "Warning: no better bibtex IDs found"))
-    (when zotmacs-better-bibtex-debug
-      (message "Recomposing link %s using %d mappings" text (length bb-ids)))
+	(regex "^<a href=\"//select/items/\\(.+?\\)\">\\(.+\\)</a>\\([ ]*\\)$"))
     (if (null (string-match regex text))
 	(when zotmacs-better-bibtex-debug
 	  (message "Link does not match: {{%s}}--skipping" text))
       (let* ((lib-item-key (match-string 1 text))
 	     (link-text (match-string 2 text))
 	     (some-buggy-whitesapce (match-string 3 text))
-	     (lib-key (cdr (assoc lib-item-key bb-ids))))
-	(unless lib-key
-	  (message "Missing item key %s--skipping" lib-item-key))
-	(when lib-key
+	     (cite-key (cdr (assoc lib-item-key bb-ids))))
+	(if (null cite-key)
+	    (message "Missing BetterBibtex cite key %s--skipping" lib-item-key)
 	  (setq text (format "<a href=\"%s\">%s</a>%s"
 			     (zotmacs-zotsite-url lib-item-key)
 			     link-text
 			     some-buggy-whitesapce))
-	  (message "Replacing link %s -> %s" prev-link text)))
-      text)))
+	  (message "Replacing link %s -> %s" prev-link text))))
+    text))
 
+(defun zotmacs-zotero-filter-latex-link (text bb-ids)
+  "Replace a Zotero LaTeX link in TEXT using an citation link from BB-IDS."
+  (let ((prev-link text)
+	(regex "\\\\href{//select/items/\\(.+\\)}{\\(.+\\)}$"))
+    (if (null (string-match regex text))
+	(when zotmacs-better-bibtex-debug
+	  (message "Link does not match: <%s>--skipping" text))
+      (let* ((lib-item-key
+	      ;; replace escapped underscore
+	      (string-replace "\\" "" (match-string 1 text)))
+	     (link-text (match-string 2 text))
+	     (cite-key (cdr (assoc lib-item-key bb-ids))))
+	(if (null cite-key)
+	    (message "Missing BetterBibtex cite key %s--skipping" lib-item-key)
+	  (setq text (format "\\href{%s}{%s}~\\autocite{%s}"
+			     (zotmacs-zotsite-url lib-item-key)
+			     link-text cite-key))
+	  (message "Replacing link %s -> %s" prev-link text)))))
+  text)
+
+(defun zotmacs-zotero-filter-link (text backend info)
+  "Replace links TEXT with Zotero Zotsync links.
+BACKEND the backend, which is usually `twbs'.
+INFO is optional information about the export process."
+  (ignore info)
+  (set-text-properties 0 (length text) nil text)
+  (when zotmacs-better-bibtex-debug
+    (message "Remapping <%s>" text))
+  (let ((bb-ids (zotmacs-get-better-bibtex-ids)))
+    (unless bb-ids
+      (message "Warning: no better bibtex IDs found"))
+    (when zotmacs-better-bibtex-debug
+      (message "Recomposing link <%s> using %d mappings" text (length bb-ids)))
+    (funcall (if (eq backend 'latex)
+		 #'zotmacs-zotero-filter-latex-link
+	       #'zotmacs-zotero-filter-html-link)
+	     text bb-ids)))
+
+;;;###autoload
+(defun zotmacs-zotero-export ()
+  "Export the Zotero website.
+This is exported on the file system in the directory parsed from
+`zotmacs-zotsite-url'."
+  (interactive)
+  (let* ((regex "^file:\\(.*\\)/index.html$")
+	 (dir zotmacs-zotsite-url))
+    (if (null (string-match regex dir))
+	(error "Only file URLs ending in `/index.html' supported"))
+    (let* ((export-dir (match-string 1 zotmacs-zotsite-url))
+	   (cmd (format "%s export --outputdir %s"
+			zotmacs-program export-dir)))
+      (message "Exporting site: `%s'" cmd)
+      (shell-command (concat cmd "&")))))
+
+;;;###autoload
 (defun zotmacs-publish (output-directory &optional publish-fn betterbibtexp
 					 includes excludes)
   "Publish an Org Mode project in to a website.
@@ -209,6 +252,7 @@ used as additional resource directories that are copied to the OUTPUT-DIRECTORY.
 
 EXCLUDES is used in the `:exclude' property, which is a regular expression of
 files, that if matches, is excluded from the list of files to copy."
+  (interactive)
   (message "Remember to close the Zotero application")
   (setq excludes (or excludes "^\\(.gitignore\\|.*\\.org\\)$"))
   (setq publish-fn (or publish-fn #'org-html-publish-to-html))
@@ -257,7 +301,7 @@ The initialization process includes configuring Org Mode to publish and
   (interactive)
  ;; hook to substitute `zotero' protocols with zotsite links
  (add-hook 'org-export-filter-link-functions
-	   'zotmacs-zotero-filter-link-function)
+	   'zotmacs-zotero-filter-link)
 
  ;; create the Org Mode export/publish and follow hooks
  (org-zotxt--define-links)

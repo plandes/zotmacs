@@ -1,7 +1,5 @@
 # Link to Zotsite and automate publishing Org Mode files
 
-[![MELPA badge][melpa-badge]][melpa-link]
-[![MELPA stable badge][melpa-stable-badge]][melpa-stable-link]
 [![Build Status][build-badge]][build-link]
 
 Link / browse to [Zotsite] and automate publishing [Org Mode] files.  This
@@ -66,5 +64,5 @@ GNU Lesser General Public License, Version 2.0
 [Zotsite]: https://github.com/plandes/zotsite
 [Org Mode]: https://orgmode.org
 
-[exported]: https://github.com/plandes/zotsite#usage)
+[exported]: https://github.com/plandes/zotsite#usage
 [deployed]: https://github.com/plandes/zotsite/blob/master/src/sh/zotsync.sh

@@ -232,7 +232,7 @@ This is exported on the file system in the directory parsed from
 
 ;;;###autoload
 (defun zotmacs-publish (output-directory &optional publish-fn betterbibtexp
-					 includes excludes)
+					 includes excludes recursivep)
   "Publish an Org Mode project in to a website.
 
 This first sets `org-publish-project-alist', and then calls
@@ -250,10 +250,14 @@ INCLUDES is either a string (which is split on whitespace) or a list of strings
 used as additional resource directories that are copied to the OUTPUT-DIRECTORY.
 
 EXCLUDES is used in the `:exclude' property, which is a regular expression of
-files, that if matches, is excluded from the list of files to copy."
+files, that if matches, is excluded from the list of files to copy.
+
+RECURSIVEP, if t, files in sub-directories are considered.  Disable by
+setting to nil."
   (interactive)
   (message "Remember to close the Zotero application")
-  (setq excludes (or excludes "^\\(.gitignore\\|.*\\.org\\)$"))
+  (when (= (length excludes) 0)
+    (setq excludes "^\\(.gitignore\\|.*\\.org\\)$"))
   (setq publish-fn (or publish-fn #'org-html-publish-to-html))
   (when (stringp includes)
     (setq includes (split-string (string-trim includes))))
@@ -278,7 +282,7 @@ files, that if matches, is excluded from the list of files to copy."
 		   :publishing-function org-publish-attachment
 		   :publishing-directory ,(expand-file-name dir output-directory)
 		   :exclude ,excludes
-		   :recursive t))))
+		   :recursive ,recursivep))))
        (funcall (lambda (forms)
 		  (append forms
 			  `(("website" :components
@@ -288,7 +292,7 @@ files, that if matches, is excluded from the list of files to copy."
 		  :base-extension "org"
 		  :publishing-function ,publish-fn
 		  :publishing-directory ,output-directory
-		  :recursive t)))
+		  :recursive ,recursivep)))
        (setq org-publish-project-alist))
   (org-publish-current-project t))
 

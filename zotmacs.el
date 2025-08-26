@@ -1,6 +1,6 @@
 ;;; zotmacs.el --- Zotsite and Zotero Integration  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021 - 2024 Paul Landes
+;; Copyright (C) 2021 - 2025 Paul Landes
 
 ;; Version: 0.1
 ;; Author: Paul Landes
@@ -71,7 +71,7 @@
   :group 'zotmacs
   :type 'file)
 
-(defcustom zotmacs-latex-keep-links nil
+(defcustom zotmacs-latex-keep-links t
   "Whether to keep web links in addition to the cite LaTeX command."
   :group 'zotmacs
   :type 'boolean)

@@ -71,6 +71,11 @@
   :group 'zotmacs
   :type 'file)
 
+(defcustom zotmacs-latex-keep-links nil
+  "Whether to keep web links in addition to the cite LaTeX command."
+  :group 'zotmacs
+  :type 'boolean)
+
 (defvar zotmacs-better-bibtex-cache nil
   "The cache BetterBibtex key -> citekey values.")
 
@@ -190,9 +195,11 @@ LIB-ITEM-KEY is a unique entry ID prefixed with the library ID such as
 	     (cite-key (cdr (assoc lib-item-key bb-ids))))
 	(if (null cite-key)
 	    (message "Missing BetterBibtex cite key %s--skipping" lib-item-key)
-	  (setq text (format "\\href{%s}{%s}~\\autocite{%s}"
-			     (zotmacs-zotsite-url lib-item-key)
-			     link-text cite-key))
+	  (setq text (if zotmacs-latex-keep-links
+			 (format "\\href{%s}{%s}~\\autocite{%s}"
+				 (zotmacs-zotsite-url lib-item-key)
+				 link-text cite-key)
+		       (setq text (format "~\\cite{%s}" cite-key))))
 	  (message "Replacing link %s -> %s" prev-link text)))))
   text)
 
@@ -213,6 +220,18 @@ INFO is optional information about the export process."
 		 #'zotmacs-zotero-filter-latex-link
 	       #'zotmacs-zotero-filter-html-link)
 	     text bb-ids)))
+
+(defun zotmacs-zotero-cite-space-gobble (backend)
+  "Remove space between zotero cite links if BACKEND is `latex' .
+This modifies the text so that the ~cite directly follows the text to avoid
+word rapping references."
+  (when (eq backend 'latex)
+    (let* ((zotero-cite-link "[[zotero://select/items")
+	   (repl-regex (concat "[ \t]+" (regexp-quote zotero-cite-link))))
+      (save-excursion
+	(goto-char (point-min))
+	(while (re-search-forward repl-regex nil t)
+	  (replace-match zotero-cite-link))))))
 
 ;;;###autoload
 (defun zotmacs-zotero-export ()
@@ -302,16 +321,19 @@ setting to nil."
 The initialization process includes configuring Org Mode to publish and
 `org-zotxt' to use `zotmacs' push and attachment viewing."
   (interactive)
- ;; hook to substitute `zotero' protocols with zotsite links
- (add-hook 'org-export-filter-link-functions
-	   'zotmacs-zotero-filter-link)
+  ;; hook to substitute `zotero' protocols with zotsite links
+  (add-hook 'org-export-filter-link-functions
+	    'zotmacs-zotero-filter-link)
 
- ;; create the Org Mode export/publish and follow hooks
- (org-zotxt--define-links)
+  (add-hook 'org-export-before-parsing-functions
+	    'zotmacs-zotero-cite-space-gobble)
 
- ;; override the `org-zotxt' Org Mode follow function for opening Zotero links
- (eval (list 'defalias (quote 'org-zotxt--link-follow)
-	     (quote 'zotmacs-browse-item))))
+  ;; create the Org Mode export/publish and follow hooks
+  (org-zotxt--define-links)
+
+  ;; override the `org-zotxt' Org Mode follow function for opening Zotero links
+  (eval (list 'defalias (quote 'org-zotxt--link-follow)
+	      (quote 'zotmacs-browse-item))))
 
 (provide 'zotmacs)
 
